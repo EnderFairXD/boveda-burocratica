@@ -1,17 +1,31 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 
-export type DocumentKey = string;
+export type DocumentCategory = string;
 
 export interface StoredDocument {
-  key: DocumentKey;
+  /** Identificador único. Para categorías de slot fijo (ej. DNI) es `${category}-${slot}`;
+   * para listas (ej. CV) es un id generado por `generateDocumentId`. */
+  id: string;
+  category: DocumentCategory;
+  /** Sub-posición dentro de la categoría, ej. 'anverso' | 'reverso' para el DNI. */
+  slot?: string;
   label: string;
   uri: string;
   fileName: string;
   savedAt: string;
 }
 
-type DocumentIndex = Record<DocumentKey, StoredDocument>;
+interface SaveDocumentParams {
+  id: string;
+  category: DocumentCategory;
+  slot?: string;
+  label: string;
+  sourceUri: string;
+  originalFileName: string;
+}
+
+type DocumentIndex = Record<string, StoredDocument>;
 
 const INDEX_KEY = 'boveda_documentos_index';
 
@@ -32,27 +46,31 @@ async function writeIndex(index: DocumentIndex): Promise<void> {
   await SecureStore.setItemAsync(INDEX_KEY, JSON.stringify(index));
 }
 
+/** Genera un id único para documentos de tipo lista (ej. varios CVs). */
+export function generateDocumentId(category: DocumentCategory): string {
+  return `${category}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 /**
  * Copia el archivo seleccionado al directorio privado de la app (offline) y
  * guarda su ruta en SecureStore, que en Android usa Keystore y en iOS el Keychain.
+ * Si `id` ya existía, sustituye ese documento y borra el archivo anterior.
  */
-export async function saveDocument(
-  key: DocumentKey,
-  label: string,
-  sourceUri: string,
-  originalFileName: string,
-): Promise<StoredDocument> {
+export async function saveDocument(params: SaveDocumentParams): Promise<StoredDocument> {
+  const { id, category, slot, label, sourceUri, originalFileName } = params;
   const documentsDirectory = getDocumentsDirectory();
 
   const extension = originalFileName.includes('.') ? originalFileName.split('.').pop() : 'dat';
-  const fileName = `${key}-${Date.now()}.${extension}`;
+  const fileName = `${id}.${extension}`;
 
   const sourceFile = new File(sourceUri);
   const destinationFile = new File(documentsDirectory, fileName);
   await sourceFile.copy(destinationFile, { overwrite: true });
 
   const document: StoredDocument = {
-    key,
+    id,
+    category,
+    slot,
     label,
     uri: destinationFile.uri,
     fileName,
@@ -60,8 +78,8 @@ export async function saveDocument(
   };
 
   const index = await readIndex();
-  const previous = index[key];
-  index[key] = document;
+  const previous = index[id];
+  index[id] = document;
   await writeIndex(index);
 
   if (previous && previous.uri !== destinationFile.uri) {
@@ -79,14 +97,14 @@ export async function getStoredDocuments(): Promise<StoredDocument[]> {
   return Object.values(index);
 }
 
-export async function getDocument(key: DocumentKey): Promise<StoredDocument | null> {
-  const index = await readIndex();
-  return index[key] ?? null;
+export async function getDocumentsByCategory(category: DocumentCategory): Promise<StoredDocument[]> {
+  const all = await getStoredDocuments();
+  return all.filter((doc) => doc.category === category);
 }
 
-export async function deleteDocument(key: DocumentKey): Promise<void> {
+export async function deleteDocument(id: string): Promise<void> {
   const index = await readIndex();
-  const document = index[key];
+  const document = index[id];
   if (!document) return;
 
   const file = new File(document.uri);
@@ -94,6 +112,6 @@ export async function deleteDocument(key: DocumentKey): Promise<void> {
     file.delete();
   }
 
-  delete index[key];
+  delete index[id];
   await writeIndex(index);
 }
