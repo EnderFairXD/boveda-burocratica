@@ -13,6 +13,7 @@
       }
     },
     "android": {
+      "package": "com.enderfirexd.bovedaburocratica",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,6 +27,12 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "552c4f88-03ec-4aeb-96b3-faa0b1fb785f"
+      }
+    },
+    "owner": "enderfirexd"
   }
 }

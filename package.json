@@ -6,7 +6,9 @@
     "babel-preset-expo": "~57.0.0",
     "expo": "~57.0.24",
     "expo-dev-client": "~57.0.19",
+    "expo-document-picker": "~57.0.2",
     "expo-file-system": "~57.0.7",
+    "expo-image-picker": "~57.0.19",
     "expo-local-authentication": "~57.0.3",
     "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eas-cli": "^24.7.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
