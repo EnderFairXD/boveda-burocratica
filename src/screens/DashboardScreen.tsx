@@ -55,7 +55,17 @@ const CATEGORIES: CategoryConfig[] = [
       { key: 'reverso', label: 'Reverso' },
     ],
   },
-  { key: 'padron', label: 'Padrón', icon: '🏠', pickerType: 'document', mode: 'single' },
+  {
+    key: 'carnet',
+    label: 'Carné de Conducir',
+    icon: '🚗',
+    pickerType: 'image',
+    mode: 'dual',
+    slots: [
+      { key: 'anverso', label: 'Anverso' },
+      { key: 'reverso', label: 'Reverso' },
+    ],
+  },
   {
     key: 'cv',
     label: 'Currículum',
@@ -222,30 +232,42 @@ export function DashboardScreen() {
                       const saved = findDocument(id);
                       const isBusy = busyId === id;
 
-                      return (
-                        <Pressable
-                          key={slot.key}
-                          onPress={() => (saved ? setViewerDocument(saved) : handleAddSlot(config, slot))}
-                          className="flex-1"
-                        >
-                          {saved ? (
-                            <View className="overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-800">
+                      if (saved) {
+                        return (
+                          <View
+                            key={slot.key}
+                            className="relative flex-1 overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-800"
+                          >
+                            <Pressable onPress={() => setViewerDocument(saved)}>
                               <Image source={{ uri: saved.uri }} resizeMode="cover" className="h-28 w-full" />
                               <View className="items-center justify-center bg-emerald-500/10 py-1.5">
                                 <Text className="text-xs font-semibold text-emerald-400">✓ {slot.label}</Text>
                               </View>
-                            </View>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => handleAddSlot(config, slot)}
+                              hitSlop={8}
+                              className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-black/30 active:bg-black/50"
+                            >
+                              <Text className="text-xs text-white">✎</Text>
+                            </Pressable>
+                          </View>
+                        );
+                      }
+
+                      return (
+                        <Pressable
+                          key={slot.key}
+                          onPress={() => handleAddSlot(config, slot)}
+                          className="h-28 flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-800/40"
+                        >
+                          {isBusy ? (
+                            <ActivityIndicator color="#818cf8" />
                           ) : (
-                            <View className="h-28 items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-800/40">
-                              {isBusy ? (
-                                <ActivityIndicator color="#818cf8" />
-                              ) : (
-                                <>
-                                  <Text className="mb-1 text-2xl text-slate-500">+</Text>
-                                  <Text className="text-xs font-medium text-slate-500">{slot.label}</Text>
-                                </>
-                              )}
-                            </View>
+                            <>
+                              <Text className="mb-1 text-2xl text-slate-500">+</Text>
+                              <Text className="text-xs font-medium text-slate-500">{slot.label}</Text>
+                            </>
                           )}
                         </Pressable>
                       );
@@ -306,7 +328,8 @@ export function DashboardScreen() {
                           </Pressable>
                           <Pressable
                             onPress={() => handleDeleteListItem(item.id)}
-                            className="rounded-full p-2 active:bg-slate-700"
+                            hitSlop={8}
+                            className="h-8 w-8 items-center justify-center rounded-full active:bg-slate-700"
                           >
                             <Text className="text-slate-500">✕</Text>
                           </Pressable>
@@ -324,12 +347,12 @@ export function DashboardScreen() {
             return (
               <View
                 key={config.key}
-                className="mb-5 rounded-3xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-lg shadow-black/40"
+                className="relative mb-5 rounded-3xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-lg shadow-black/40"
               >
                 <Pressable
                   onPress={() => saved && setViewerDocument(saved)}
                   disabled={!saved}
-                  className="mb-4 flex-row items-center gap-3"
+                  className="flex-row items-center gap-3"
                 >
                   <View className="h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20">
                     <Text className="text-2xl">{config.icon}</Text>
@@ -338,22 +361,32 @@ export function DashboardScreen() {
                     <Text className="text-xl font-bold text-white">{config.label}</Text>
                     <Text className="text-slate-400">{saved ? 'Toca para ver el documento' : 'Aún no guardado'}</Text>
                   </View>
-                  <View className={`rounded-full px-3 py-1 ${saved ? 'bg-emerald-500/15' : 'bg-slate-800'}`}>
-                    <Text className={`text-xs font-semibold ${saved ? 'text-emerald-400' : 'text-slate-500'}`}>
-                      {saved ? 'Guardado' : 'Pendiente'}
-                    </Text>
-                  </View>
+                  {!saved && (
+                    <View className="rounded-full bg-slate-800 px-3 py-1">
+                      <Text className="text-xs font-semibold text-slate-500">Pendiente</Text>
+                    </View>
+                  )}
                 </Pressable>
 
-                <Pressable
-                  onPress={() => handleAddSingle(config)}
-                  disabled={isBusy}
-                  className="rounded-full bg-blue-600 px-4 py-3 shadow-md shadow-blue-900/40 active:bg-blue-700 disabled:opacity-50"
-                >
-                  <Text className="text-center font-semibold text-white">
-                    {isBusy ? 'Guardando…' : saved ? `Actualizar ${config.label}` : `Añadir ${config.label}`}
-                  </Text>
-                </Pressable>
+                {saved ? (
+                  <Pressable
+                    onPress={() => handleAddSingle(config)}
+                    hitSlop={8}
+                    className="absolute right-4 top-4 h-8 w-8 items-center justify-center rounded-full active:bg-slate-800"
+                  >
+                    <Text className="text-base text-slate-400">✎</Text>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    onPress={() => handleAddSingle(config)}
+                    disabled={isBusy}
+                    className="mt-4 rounded-full bg-blue-600 px-4 py-3 shadow-md shadow-blue-900/40 active:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Text className="text-center font-semibold text-white">
+                      {isBusy ? 'Guardando…' : `Añadir ${config.label}`}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             );
           })}
