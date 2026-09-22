@@ -33,6 +33,12 @@
         "projectId": "552c4f88-03ec-4aeb-96b3-faa0b1fb785f"
       }
     },
-    "owner": "enderfirexd"
+    "owner": "enderfirexd",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/552c4f88-03ec-4aeb-96b3-faa0b1fb785f"
+    }
   }
 }
