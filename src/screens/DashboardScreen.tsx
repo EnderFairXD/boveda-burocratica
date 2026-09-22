@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { getStoredDocuments, saveDocument, StoredDocument } from '../utils/fileManager';
+import { DocumentViewer } from './DocumentViewer';
 
 interface DocumentTypeConfig {
   key: string;
@@ -21,6 +22,7 @@ const DOCUMENT_TYPES: DocumentTypeConfig[] = [
 export function DashboardScreen() {
   const [documents, setDocuments] = useState<Record<string, StoredDocument>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [viewerDocument, setViewerDocument] = useState<StoredDocument | null>(null);
 
   const loadDocuments = useCallback(async () => {
     const stored = await getStoredDocuments();
@@ -77,42 +79,50 @@ export function DashboardScreen() {
   );
 
   return (
-    <ScrollView className="flex-1 bg-slate-950" contentContainerClassName="px-5 pb-10 pt-16">
-      <Text className="mb-1 text-2xl font-bold text-white">Mis documentos</Text>
-      <Text className="mb-6 text-slate-400">
-        Todo se guarda cifrado y offline en este dispositivo.
-      </Text>
+    <>
+      <ScrollView className="flex-1 bg-slate-950" contentContainerClassName="px-5 pb-10 pt-16">
+        <Text className="mb-1 text-2xl font-bold text-white">Mis documentos</Text>
+        <Text className="mb-6 text-slate-400">
+          Todo se guarda cifrado y offline en este dispositivo.
+        </Text>
 
-      <View className="gap-3">
-        {DOCUMENT_TYPES.map((config) => {
-          const saved = documents[config.key];
-          const isBusy = busyKey === config.key;
+        <View className="gap-3">
+          {DOCUMENT_TYPES.map((config) => {
+            const saved = documents[config.key];
+            const isBusy = busyKey === config.key;
 
-          return (
-            <View key={config.key} className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-              <View className="mb-3 flex-row items-center gap-3">
-                <Text className="text-3xl">{config.icon}</Text>
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold text-white">{config.label}</Text>
-                  <Text className={saved ? 'text-emerald-400' : 'text-slate-500'}>
-                    {saved ? `${config.label} guardado` : 'Sin guardar'}
+            return (
+              <View key={config.key} className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+                <Pressable
+                  onPress={() => saved && setViewerDocument(saved)}
+                  disabled={!saved}
+                  className="mb-3 flex-row items-center gap-3"
+                >
+                  <Text className="text-3xl">{config.icon}</Text>
+                  <View className="flex-1">
+                    <Text className="text-lg font-semibold text-white">{config.label}</Text>
+                    <Text className={saved ? 'text-emerald-400' : 'text-slate-500'}>
+                      {saved ? `${config.label} guardado · toca para ver` : 'Sin guardar'}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => handleAdd(config)}
+                  disabled={isBusy}
+                  className="rounded-full bg-blue-600 px-4 py-2 active:bg-blue-700 disabled:opacity-50"
+                >
+                  <Text className="text-center font-semibold text-white">
+                    {isBusy ? 'Guardando…' : saved ? `Actualizar ${config.label}` : `Añadir ${config.label}`}
                   </Text>
-                </View>
+                </Pressable>
               </View>
+            );
+          })}
+        </View>
+      </ScrollView>
 
-              <Pressable
-                onPress={() => handleAdd(config)}
-                disabled={isBusy}
-                className="rounded-full bg-blue-600 px-4 py-2 active:bg-blue-700 disabled:opacity-50"
-              >
-                <Text className="text-center font-semibold text-white">
-                  {isBusy ? 'Guardando…' : saved ? `Actualizar ${config.label}` : `Añadir ${config.label}`}
-                </Text>
-              </Pressable>
-            </View>
-          );
-        })}
-      </View>
-    </ScrollView>
+      <DocumentViewer doc={viewerDocument} onClose={() => setViewerDocument(null)} />
+    </>
   );
 }
