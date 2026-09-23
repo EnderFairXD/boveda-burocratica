@@ -1,12 +1,13 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import type { OTAStatus } from '../hooks/useOTAUpdates';
+import type { UpdateStatus } from '../hooks/useGithubUpdate';
 
 interface UpdateBannerProps {
-  status: OTAStatus;
+  status: UpdateStatus;
+  latestVersion: string | null;
   onPress: () => void;
 }
 
-export function UpdateBanner({ status, onPress }: UpdateBannerProps) {
+export function UpdateBanner({ status, latestVersion, onPress }: UpdateBannerProps) {
   if (status === 'idle') return null;
 
   if (status === 'downloading') {
@@ -33,7 +34,7 @@ export function UpdateBanner({ status, onPress }: UpdateBannerProps) {
       onPress={onPress}
       className="flex-row items-center justify-between bg-indigo-600 px-4 py-3 active:bg-indigo-700"
     >
-      <Text className="font-semibold text-white">✨ Hay una actualización disponible</Text>
+      <Text className="font-semibold text-white">✨ Versión {latestVersion ?? 'nueva'} disponible</Text>
       <Text className="font-bold text-white underline">Actualizar</Text>
     </Pressable>
   );
