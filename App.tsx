@@ -4,15 +4,15 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { UpdateBanner } from './src/components/UpdateBanner';
-import { useOTAUpdates } from './src/hooks/useOTAUpdates';
+import { useGithubUpdate } from './src/hooks/useGithubUpdate';
 
 export default function App() {
-  const { status, applyUpdate } = useOTAUpdates();
+  const { status, latestVersion, applyUpdate } = useGithubUpdate();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthScreen>
-        <UpdateBanner status={status} onPress={applyUpdate} />
+        <UpdateBanner status={status} latestVersion={latestVersion} onPress={applyUpdate} />
         <DashboardScreen />
         <StatusBar style="light" />
       </AuthScreen>
