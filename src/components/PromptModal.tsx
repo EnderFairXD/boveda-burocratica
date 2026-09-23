@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, Text, TextInput, View } from 'react-native';
 
 interface PromptModalProps {
@@ -21,10 +21,17 @@ export function PromptModal({
   onConfirm,
 }: PromptModalProps) {
   const [value, setValue] = useState(initialValue);
+  const [prevVisible, setPrevVisible] = useState(visible);
 
-  useEffect(() => {
-    if (visible) setValue(initialValue);
-  }, [visible, initialValue]);
+  // Reset the field whenever the modal transitions to visible. Adjusting
+  // state during render (React's recommended pattern) instead of in an
+  // effect avoids an extra render pass.
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+    if (visible) {
+      setValue(initialValue);
+    }
+  }
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>

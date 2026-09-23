@@ -75,6 +75,22 @@ const CATEGORIES: CategoryConfig[] = [
     itemPlaceholder: 'Ej. CV Español',
   },
   { key: 'sanitaria', label: 'Tarjeta Sanitaria', icon: '🩺', pickerType: 'image', mode: 'single' },
+  {
+    key: 'vacunas',
+    label: 'Vacunas',
+    icon: '💉',
+    pickerType: 'document',
+    mode: 'list',
+    itemPlaceholder: 'Ej. Covid-19 · 3ª dosis',
+  },
+  {
+    key: 'recetas',
+    label: 'Prescripciones',
+    icon: '💊',
+    pickerType: 'document',
+    mode: 'list',
+    itemPlaceholder: 'Ej. Ibuprofeno 600mg',
+  },
 ];
 
 interface PickAndSaveParams {
@@ -98,8 +114,16 @@ export function DashboardScreen() {
   }, []);
 
   useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
+    let ignore = false;
+
+    getStoredDocuments().then((stored) => {
+      if (!ignore) setDocuments(stored);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const findDocument = useCallback(
     (id: string) => documents.find((doc) => doc.id === id) ?? null,
@@ -140,7 +164,7 @@ export function DashboardScreen() {
         }
 
         await loadDocuments();
-      } catch (err) {
+      } catch {
         Alert.alert('Error', 'No se pudo guardar el documento. Inténtalo de nuevo.');
       } finally {
         setBusyId(null);
