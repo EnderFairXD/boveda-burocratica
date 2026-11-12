@@ -1,8 +1,9 @@
-import { Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Pdf from 'react-native-pdf';
 import type { StoredDocument } from '../utils/fileManager';
 import { ZoomableImage } from '../components/ZoomableImage';
+import { useDocumentDataUri } from '../hooks/useDocumentDataUri';
 
 interface DocumentViewerProps {
   doc: StoredDocument | null;
@@ -17,6 +18,8 @@ function isImageFile(fileName: string): boolean {
 }
 
 export function DocumentViewer({ doc, onClose }: DocumentViewerProps) {
+  const dataUri = useDocumentDataUri(doc);
+
   return (
     <Modal
       visible={doc !== null}
@@ -40,12 +43,19 @@ export function DocumentViewer({ doc, onClose }: DocumentViewerProps) {
             </Pressable>
           </View>
 
+          {doc && !dataUri && (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator color="#34d399" size="large" />
+            </View>
+          )}
+
           {doc &&
+            dataUri &&
             (isImageFile(doc.fileName) ? (
-              <ZoomableImage uri={doc.uri} />
+              <ZoomableImage uri={dataUri} />
             ) : (
               <Pdf
-                source={{ uri: doc.uri, cache: true }}
+                source={{ uri: dataUri, cache: false }}
                 style={{ flex: 1, backgroundColor: '#020617' }}
                 onError={(error) => console.warn('No se pudo abrir el PDF', error)}
               />
