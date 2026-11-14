@@ -12,6 +12,7 @@ import {
 } from '../utils/fileManager';
 import { DocumentViewer } from './DocumentViewer';
 import { PromptModal } from '../components/PromptModal';
+import { useDocumentDataUri } from '../hooks/useDocumentDataUri';
 
 type PickerType = 'document' | 'image';
 
@@ -99,6 +100,14 @@ interface PickAndSaveParams {
   slot?: string;
   label: string;
   pickerType: PickerType;
+}
+
+function DocumentThumbnail({ document }: { document: StoredDocument }) {
+  const dataUri = useDocumentDataUri(document);
+  if (!dataUri) {
+    return <View className="h-28 w-full bg-slate-800" />;
+  }
+  return <Image source={{ uri: dataUri }} resizeMode="cover" className="h-28 w-full" />;
 }
 
 export function DashboardScreen() {
@@ -263,7 +272,7 @@ export function DashboardScreen() {
                             className="relative flex-1 overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-800"
                           >
                             <Pressable onPress={() => setViewerDocument(saved)}>
-                              <Image source={{ uri: saved.uri }} resizeMode="cover" className="h-28 w-full" />
+                              <DocumentThumbnail document={saved} />
                               <View className="items-center justify-center bg-emerald-500/10 py-1.5">
                                 <Text className="text-xs font-semibold text-emerald-400">✓ {slot.label}</Text>
                               </View>
